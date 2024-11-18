@@ -1,5 +1,4 @@
 version: '3.9'
-
 services:
   n8n:
     image: n8nio/n8n:latest
@@ -16,7 +15,9 @@ services:
     image: asabocinski/evolutionapi:latest
     container_name: evolutionapi
     ports:
-      - "3000:3000"
+      - "8080:8080" # Ajuste a porta para corresponder à configuração da API
     env_file:
       - .env
+    volumes:
+      - ./evolution-data:/evolution/store # Diretório de persistência de dados
     restart: always
