@@ -1,4 +1,5 @@
-version: '3.9'
+version: "3.8"
+
 services:
   n8n:
     image: n8nio/n8n:latest
@@ -12,12 +13,56 @@ services:
     restart: always
 
   evolutionapi:
-    image: asabocinski/evolutionapi:latest
+    image: atendai/evolution-api:v2.1.0
     container_name: evolutionapi
     ports:
-      - "8080:8080" # Ajuste a porta para corresponder à configuração da API
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - minio
     env_file:
       - .env
     volumes:
-      - ./evolution-data:/evolution/store # Diretório de persistência de dados
+      - evolutionapi_data:/evolution/instances
     restart: always
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    restart: always
+    env_file:
+      - .env
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio_data:/data
+    restart: always
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
+  minio_data:
+  evolutionapi_data:
+  n8n_data:
